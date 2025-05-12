@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Styled Table with Gradient Chart</title>
+    <style>
+        body {
+            font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+            padding: 20px;
+            background-color: #ffffff;
+            color: rgb(42, 42, 42);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: rgb(255, 255, 255);
+            color: rgb(0, 0, 0);
+            padding: 8px 12px;
+            border: black solid 1px;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            font-weight: bold;
+            position: relative;
+            cursor: pointer;
+        }
+
+        th:hover::after {
+            content: " ⌃";
+            font-size: 12px;
+            opacity: 0.5;
+        }
+
+        tr:hover {
+            background-color: #e1e1e2;
+        }
+
+        tr {
+            border-bottom: rgba(156, 153, 153, 0.555) 1px solid;
+        }
+
+        input[type="checkbox"] {
+            accent-color: gray;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="controls">
+        <button style="background-color: black;color: white;">Add Item</button>
+    </div>
+    <h1>Inventory</h1>
+    <table>
+        <thead>
+            <tr>
+                <th><input type="checkbox"></th>
+                <th onclick="sortTable(1)">Name</th>
+                <th onclick="sortTable(2)">Stock</th>
+                <th onclick="sortTable(3)">Location</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="item : ${inventory}">
+                <td><input type="checkbox"></td>
+                <td th:text="${item.name}"></td>
+                <td th:text="${item.stock}"></td>
+                <td th:text="${item.location}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h1>Lanes</h1>
+    <canvas id="laneChart" width="400" height="200"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:inline="javascript">
+    var lanes = /*[[${lanes}]]*/ [];
+
+    var labels = lanes.map(lane => lane.lane);
+    var productionValues = lanes.map(lane => lane.production);
+
+    var ctx = document.getElementById('laneChart').getContext('2d');
+
+    // Create gradient function
+    function createGradient(ctx, index) {
+        var gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+        gradient.addColorStop(0, `hsl(${index * 50}, 70%, 60%)`);
+        gradient.addColorStop(1, `hsl(${index * 50}, 70%, 30%)`);
+        return gradient;
+    }
+
+    var backgroundColors = labels.map((_, index) => createGradient(ctx, index));
+
+    var chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Production (out of 1000)',
+                data: productionValues,
+                backgroundColor: backgroundColors,
+                borderColor: backgroundColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y', // Horizontal bar chart
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 1000
+                }
+            },
+            onClick: (event, elements) => {
+                if (elements.length > 0) {
+                    var index = elements[0].index;
+                    var laneName = labels[index];
+                    window.location.href = '/laneDetails?lane=' + laneName;
+                }
+            }
+        }
+    });
+</script>
+
+<script>
+    function sortTable(columnIndex) {
+        let table = document.querySelector("table tbody");
+        let rows = Array.from(table.rows);
+
+        let sortedRows = rows.sort((a, b) => {
+            let aText = a.cells[columnIndex].textContent.trim();
+            let bText = b.cells[columnIndex].textContent.trim();
+
+            return isNaN(aText) ? aText.localeCompare(bText) : aText - bText;
+        });
+
+        table.append(...sortedRows);
+    }
+</script>
+
+</body>
+</html>

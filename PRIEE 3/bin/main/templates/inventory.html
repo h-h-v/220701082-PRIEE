@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Styled Table</title>
+    <style>
+        body {
+            font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+            padding: 20px;
+            background-color: #ffffff;
+            color: rgb(42, 42, 42);
+        }
+
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: rgb(255, 255, 255);
+            color: rgb(0, 0, 0);
+            padding: 8px 12px;
+            border: black solid 1px;
+            border-radius:50px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            font-weight: bold;
+            position: relative;
+            cursor: pointer;
+        }
+
+        th:hover::after {
+            content: " ⌃";
+            font-size: 12px;
+            opacity: 0.5;
+        }
+        tr:hover {
+            background-color: #e1e1e2;
+        }
+        tr{
+            border-bottom: rgba(156, 153, 153, 0.555) 1px solid;
+        }
+        input[type="checkbox"] {
+            accent-color: gray;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="controls">
+        <button style="background-color: black;color: white;">Add record</button>
+        <button>☰ Filters</button>
+        <button>Columns</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th><input type="checkbox"></th>
+                <th onclick="sortTable(1)">state</th>
+                <th onclick="sortTable(2)">name</th>
+                <th onclick="sortTable(3)">production</th>
+                <th onclick="sortTable(4)">size</th>
+                <th onclick="sortTable(5)">machine_count</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr th:each="item : ${inventoryList}">
+                    <td><input type="checkbox"></td>
+                    <td th:text="${item.state}"></td>
+                    <td th:text="${item.name}"></td>
+                    <td th:text="${item.production}"></td>
+                    <td th:text="${item.size}"></td>
+                    <td th:text="${item.machine_count}"></td>
+                    <td><a th:href="@{/view(state=${item.state})}">
+                        <button>View</button>
+                    </a>                    
+                    </td>
+                    <td><button>Edit</button></td>
+                    <td><button>Delete</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function sortTable(columnIndex) {
+        let table = document.querySelector("table tbody");
+        let rows = Array.from(table.rows);
+
+        let sortedRows = rows.sort((a, b) => {
+            let aText = a.cells[columnIndex].textContent.trim();
+            let bText = b.cells[columnIndex].textContent.trim();
+
+            return isNaN(aText) ? aText.localeCompare(bText) : aText - bText;
+        });
+
+        table.append(...sortedRows);
+    }
+</script>
+
+</body>
+</html>
